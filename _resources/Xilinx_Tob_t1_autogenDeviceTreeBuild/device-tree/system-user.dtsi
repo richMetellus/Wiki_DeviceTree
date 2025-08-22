@@ -1,0 +1,544 @@
+/*/include/ "system-conf.dtsi"*/
+/ {
+    chosen {
+        bootargs = " earlycon console=ttyPS0,115200 clk_ignore_unused root=/dev/mmcblk0p2 rw rootwait";
+        stdout-path = "serial0:115200n8";
+        };
+
+    tob {
+		version = "tob_5";
+	};
+    
+    reserved-memory {
+        #address-cells = <2>;
+        #size-cells = <2>;
+        ranges;
+        rproc_0_reserved: rproc@30000000 {
+            no-map;
+            reg = <0x0 0x30000000 0x0 0x8000000>;
+        };
+        
+        rproc_1_reserved: rproc@38000000 {
+            no-map;
+            reg = <0x0 0x38000000 0x0 0x8000000>;
+        };
+
+        /* Reserved DDR memory for the Microblaze */
+        mb_reserved: shared_mem@40000000 {
+            no-map;
+            reg = <0x0 0x40000000 0x0 0x1000000>;
+        };
+
+        rpu0vdev0vring0: rpu0vdev0vring0@29800000 {
+            no-map;
+            reg = <0x0 0x29800000 0x0 0x4000>;
+        };
+        rpu0vdev0vring1: rpu0vdev0vring1@29804000 {
+            no-map;
+            reg = <0x0 0x29804000 0x0 0x4000>;
+        };
+        rpu0vdev0buffer: rpu0vdev0buffer@29808000 {
+            no-map;
+            reg = <0x0 0x29808000 0x0 0x100000>;
+        };
+
+        rpu1vdev0vring0: rpu1vdev0vring0@29900000 {
+            no-map;
+            reg = <0x0 0x29900000 0x0 0x4000>;
+        };
+        rpu1vdev0vring1: rpu1vdev0vring1@29904000 {
+            no-map;
+            reg = <0x0 0x29904000 0x0 0x4000>;
+        };
+        rpu1vdev0buffer: rpu1vdev0buffer@29908000 {
+            no-map;
+            reg = <0x0 0x29908000 0x0 0x100000>;
+            };
+
+        /* Reserved DDR memory for ENI */
+        eni_reserved: shared_mem@7f000000 {
+            no-map;
+            reg = <0x0 0x7f000000 0x0 0x1000000>;
+        };
+
+        lpd_bram_0: lpd_bram_0@80000000 {
+            no-map;
+            reg = <0x0 0x80000000 0x0 0x4000>;
+        };
+
+        lpd_bram_1: lpd_bram_1@80004000 {
+            no-map;
+            reg = <0x0 0x80004000 0x0 0x4000>;
+        };
+
+        fpd_bram_0: fpd_bram_0@B0000000 {
+            no-map;
+            reg = <0x0 0xB0000000 0x0 0x4000>;
+        };
+
+        fpd_bram_1: fpd_bram_0@B0004000 {
+            no-map;
+            reg = <0x0 0xB0004000 0x0 0x4000>;
+        };
+    };
+
+    
+
+    tcm_0a@ffe00000 {
+        no-map;
+        reg = <0x0 0xffe00000 0x0 0x10000>;
+        phandle = <0x40>;
+        status = "okay";
+        compatible = "mmio-sram";
+    };
+ 
+    tcm_0b@ffe20000 {
+        no-map;
+        reg = <0x0 0xffe20000 0x0 0x10000>;
+        phandle = <0x41>;
+        status = "okay";
+        compatible = "mmio-sram";
+    };
+ 
+    tcm_0a@ffe90000 {
+        no-map;
+        reg = <0x0 0xffe90000 0x0 0x10000>;
+        phandle = <0x42>;
+        status = "okay";
+        compatible = "mmio-sram";
+    };
+ 
+    tcm_0b@ffeb0000 {
+        no-map;
+        reg = <0x0 0xffeb0000 0x0 0x10000>;
+        phandle = <0x43>;
+        status = "okay";
+        compatible = "mmio-sram";
+    };
+
+    rf5ss@ff9a0000 {
+        compatible = "xlnx,zynqmp-r5-remoteproc";
+        #address-cells = <0x2>;
+        #size-cells = <0x2>;
+        ranges;
+        xlnx,cluster-mode = <1>;
+        reg = <0x0 0xff9a0000 0x0 0x10000>;
+ 
+        r5f_0 {
+            compatible = "xilinx,r5f";
+            #address-cells = <0x2>;
+            #size-cells = <0x2>;
+            ranges;
+            sram = <0x40 0x41>;
+            memory-region = <&rproc_0_reserved>, <&rpu0vdev0buffer>, <&rpu0vdev0vring0>, <&rpu0vdev0vring1>;
+            power-domain = <0x7>;
+            mboxes = <&ipi_mailbox_rpu0 0>, <&ipi_mailbox_rpu0 1>;
+            mbox-names = "tx", "rx";
+        };
+        r5f_1 {
+            compatible = "xilinx,r5f";
+            #address-cells = <0x2>;
+            #size-cells = <0x2>;
+            ranges;
+            sram = <0x42 0x43>;
+            memory-region = <&rproc_1_reserved>, <&rpu1vdev0buffer>, <&rpu1vdev0vring0>, <&rpu1vdev0vring1>;
+            power-domain = <0x8>;
+            mboxes = <&ipi_mailbox_rpu1 0>, <&ipi_mailbox_rpu1 1>;
+            mbox-names = "tx", "rx";
+        };
+    };
+ 
+
+    zynqmp_ipi1 {
+        compatible = "xlnx,zynqmp-ipi-mailbox";
+        interrupt-parent = <&gic>;
+        interrupts = <0 29 4>;
+        xlnx,ipi-id = <7>;
+        #address-cells = <1>;
+        #size-cells = <1>;
+        ranges;
+ 
+        /* APU<->RPU0 IPI mailbox controller */
+        ipi_mailbox_rpu0: mailbox@ff990600 {
+            reg = <0xff990600 0x20>,
+                  <0xff990620 0x20>,
+                  <0xff9900c0 0x20>,
+                  <0xff9900e0 0x20>;
+            reg-names = "local_request_region",
+                    "local_response_region",
+                    "remote_request_region",
+                    "remote_response_region";
+            #mbox-cells = <1>;
+            xlnx,ipi-id = <1>;
+        };
+ 
+    };
+ 
+     zynqmp_ipi2 {
+        compatible = "xlnx,zynqmp-ipi-mailbox";
+        interrupt-parent = <&gic>;
+        interrupts = <0 30 4>;
+        xlnx,ipi-id = <8>;
+        #address-cells = <1>;
+        #size-cells = <1>;
+        ranges;
+  
+        /* APU<->RPU1 IPI mailbox controller */
+        ipi_mailbox_rpu1: mailbox@ff990640 {
+            reg = <0xff3f0b00 0x20>,
+                  <0xff3f0b20 0x20>,
+                  <0xff3f0940 0x20>,
+                  <0xff3f0960 0x20>;
+            reg-names = "local_request_region",
+                    "local_response_region",
+                    "remote_request_region",
+                    "remote_response_region";
+            #mbox-cells = <1>;
+            xlnx,ipi-id = <2>;
+        };
+    };
+
+    amba {
+      shm0: shm@0 {
+            compatible = "shm_uio";
+            reg = <0x0 0x30000000 0x0 0x100000>;
+        };
+        elf_ddr_0: ddr@30000000 {
+            compatible = "mmio-sram";
+            reg = <0x0 0x30000000 0x0 0x8000000>;
+        };
+        elf_ddr_1: ddr@38000000 {
+            compatible = "mmio-sram";
+            reg = <0x0 0x38000000 0x0 0x8000000>;
+        };
+        elf_ddr_mb0: ddr@40000000 {
+            compatible = "mmio-sram";
+            reg = <0x0 0x40000000 0x0 0x1000000>;
+        };
+        mmio_lpd_bram_0: lpd_bram@80000000 {
+            compatible = "mmio-sram";
+            reg = <0x0 0x80000000 0x0 0x4000>;
+	};
+        mmio_lpd_bram_1: lpd_bram@80004000 {
+            compatible = "mmio-sram";
+            reg = <0x0 0x80004000 0x0 0x4000>;
+	};
+        mmio_fpd_bram_0: fpd_bram@B0000000 {
+            compatible = "mmio-sram";
+            reg = <0x0 0xB0000000 0x0 0x4000>;
+	};
+        mmio_fpd_bram_1: fpd_bram@B0004000 {
+            compatible = "mmio-sram";
+            reg = <0x0 0xB0004000 0x0 0x4000>;
+	};
+    };
+};
+
+&gem0 {
+        /* Moved from system-conf.dtsi */
+        local-mac-address = [00 0a 35 00 22 01];
+
+
+        phy-handle = <&phyc>;
+        pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_gem0_default>;
+        phyc: phy@c {
+                reg = <0xc>;
+                ti,rx-internal-delay = <0x8>;
+                ti,tx-internal-delay = <0xa>;
+		/* TODO: add  delay? */
+                ti,fifo-depth = <0x1>;
+                ti,rxctrl-strap-worka;
+        };
+};
+
+
+
+
+&gem1 {
+        /delete-property/ phy-handle;
+        status = "disabled";
+	/delete-node/ mdio;
+};
+
+&gem2 {
+        /delete-property/ phy-handle;
+        status = "disabled";
+	/delete-node/ mdio;
+};
+
+&gem3 {
+        /delete-property/ phy-handle;
+        status = "disabled";
+	/delete-node/ mdio;
+};
+
+/* NOTE: Much of what's below may not end up being relevant to the TOB */
+
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * dts file for Xilinx ZynqMP ZCU104
+ *
+ * (C) Copyright 2017 - 2018, Xilinx, Inc.
+ *
+ * Michal Simek <michal.simek@xilinx.com>
+ */
+
+
+/* TODO: Figure out why enabling this causes kernel panic
+&i2c1 {
+        pinctrl-names = "default", "gpio";
+        pinctrl-0 = <&pinctrl_i2c1_default>;
+        pinctrl-1 = <&pinctrl_i2c1_gpio>;
+        scl-gpios = <&gpio 16 0>;
+        sda-gpios = <&gpio 17 0>;
+};
+*/
+
+&pinctrl0 {
+        status = "okay";
+
+/* TODO: Figure out why enabling this causes kernel panic
+        pinctrl_i2c1_default: i2c1-default {
+                mux {
+                        groups = "i2c1_4_grp";
+                        function = "i2c1";
+                };
+
+                conf {
+                        groups = "i2c1_4_grp";
+                        bias-pull-up;
+                        slew-rate = <1>;
+                        io-standard = <1>;
+                        drive-strength = <12>;
+                };
+        };
+
+        pinctrl_i2c1_gpio: i2c1-gpio {
+                mux {
+                        groups = "gpio0_16_grp", "gpio0_17_grp";
+                        function = "gpio0";
+                };
+
+                conf {
+                        groups = "gpio0_16_grp", "gpio0_17_grp";
+                        slew-rate = <1>;
+                        io-standard = <1>;
+                        drive-strength = <12>;
+                };
+        };
+*/
+
+        pinctrl_sdhci1_default: sdhci1-default {
+                mux {
+                        groups = "sdio1_0_grp";
+                        function = "sdio1";
+                };
+
+                conf {
+                        groups = "sdio1_0_grp";
+                        slew-rate = <1>;
+                        io-standard = <1>;
+                        bias-disable;
+                        drive-strength = <12>;
+                };
+
+                mux-cd {
+                        groups = "sdio1_cd_0_grp";
+                        function = "sdio1_cd";
+                };
+
+                conf-cd {
+                        groups = "sdio1_cd_0_grp";
+                        bias-high-impedance;
+                        bias-pull-up;
+                        slew-rate = <1>;
+                        io-standard = <1>;
+                };
+        };
+
+        pinctrl_uart0_default: uart0-default {
+                mux {
+                        groups = "uart0_4_grp";
+                        function = "uart0";
+                };
+
+                conf {
+                        groups = "uart0_4_grp";
+                        slew-rate = <1>;
+                        io-standard = <1>;
+                        drive-strength = <12>;
+                };
+
+                conf-rx {
+                        pins = "MIO18";
+                        bias-high-impedance;
+                };
+
+                conf-tx {
+                        pins = "MIO19";
+                        bias-disable;
+                };
+        };
+
+        pinctrl_uart1_default: uart1-default {
+                mux {
+                        groups = "uart1_5_grp";
+                        function = "uart1";
+                };
+
+                conf {
+                        groups = "uart1_5_grp";
+                        slew-rate = <1>;
+                        io-standard = <1>;
+                        drive-strength = <12>;
+                };
+
+                conf-rx {
+                        pins = "MIO21";
+                        bias-high-impedance;
+                };
+
+                conf-tx {
+                        pins = "MIO20";
+                        bias-disable;
+                };
+        };
+
+        pinctrl_usb0_default: usb0-default {
+                mux {
+                        groups = "usb0_0_grp";
+                        function = "usb0";
+                };
+
+                conf {
+                        groups = "usb0_0_grp";
+                        slew-rate = <1>;
+                        io-standard = <1>;
+                        drive-strength = <12>;
+                };
+
+                conf-rx {
+                        pins = "MIO52", "MIO53", "MIO55";
+                        bias-high-impedance;
+                };
+
+                conf-tx {
+                        pins = "MIO54", "MIO56", "MIO57", "MIO58", "MIO59",
+                               "MIO60", "MIO61", "MIO62", "MIO63";
+                        bias-disable;
+                };
+        };
+        
+        pinctrl_usb1_default: usb1-default {
+                mux {
+                        groups = "usb1_0_grp";
+                        function = "usb1";
+                };
+
+                conf {
+                        groups = "usb1_0_grp";
+                        slew-rate = <1>;
+                        io-standard = <1>;
+                        drive-strength = <12>;
+                };
+
+                conf-rx {
+                        pins = "MIO64", "MIO65", "MIO67";
+                        bias-high-impedance;
+                };
+
+                conf-tx {
+                        pins = "MIO66", "MIO68", "MIO69", "MIO70", "MIO71",
+                               "MIO72", "MIO73", "MIO74", "MIO75";
+                        bias-disable;
+                };
+        };
+
+        pinctrl_gem0_default: gem0-default {
+                mux {
+                        function = "ethernet0";
+                        groups = "ethernet0_0_grp";
+                };
+
+                conf {
+                        groups = "ethernet0_0_grp";
+                        slew-rate = <1>;
+                        io-standard = <1>;
+                        drive-strength = <12>;
+                };
+
+                conf-rx {
+                        pins = "MIO32", "MIO33", "MIO34", "MIO35", "MIO36",
+                                                                        "MIO37";
+                        bias-high-impedance;
+                        low-power-disable;
+                };
+
+                conf-tx {
+                        pins = "MIO26", "MIO27", "MIO28", "MIO29", "MIO30",
+                                                                        "MIO31";
+                        bias-disable;
+                        low-power-enable;
+                };
+
+                mux-mdio {
+                        function = "mdio3";
+                        groups = "mdio0_0_grp";
+                };
+
+                conf-mdio {
+                        groups = "mdio0_0_grp";
+                        slew-rate = <1>;
+                        io-standard = <1>;
+                        bias-disable;
+                };
+        };
+};
+
+/* SD1 with level shifter */
+&sdhci1 {
+        no-1-8-v;
+        pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_sdhci1_default>;
+        xlnx,mio_bank = <1>;
+        disable-wp;
+};
+
+&uart0 {
+        pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_uart0_default>;
+};
+
+&uart1 {
+        pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_uart1_default>;
+};
+
+/* ULPI SMSC USB3320 */
+&usb0 {
+        pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_usb0_default>;
+};
+
+&usb1 {
+        pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_usb1_default>;
+};
+
+&dwc3_0 {
+        status = "okay";
+        dr_mode = "host";
+
+};
+
+&dwc3_1 {
+        status = "okay";
+        dr_mode = "host";
+};
+
+&uart1 {
+        status = "disabled";
+};
+
+

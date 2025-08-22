@@ -1,0 +1,143 @@
+diff --git a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
+index 13bdc55..0004b69 100644
+--- a/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-sabresd.dtsi
+@@ -380,6 +380,24 @@
+ 	};
+ };
+ 
++&i2c4 {
++	clock-frequency = <100000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c4>;
++	status = "okay";
++
++	// I2C Switch
++	i2c-switch@70 {
++		compatible = "nxp,pca9548";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		reg = <0x70>;
++		reset-gpios = <&gpio2 4 GPIO_ACTIVE_LOW>;
++
++		// Material Security and Frame ID Chips
++	};
++};
++
+ &iomuxc {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_hog>;
+@@ -388,7 +406,7 @@
+ 		pinctrl_hog: hoggrp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_NANDF_D0__GPIO2_IO00 0x80000000
+-				MX6QDL_PAD_NANDF_D1__GPIO2_IO01 0x80000000
++				MX6QDL_PAD_NANDF_D1__GPIO2_IO01 0x130b0
+ 				MX6QDL_PAD_NANDF_D2__GPIO2_IO02 0x80000000
+ 				MX6QDL_PAD_NANDF_D3__GPIO2_IO03 0x80000000
+ 				MX6QDL_PAD_GPIO_0__CCM_CLKO1    0x130b0
+@@ -403,7 +421,6 @@
+ 				MX6QDL_PAD_EIM_A25__GPIO5_IO02 0x80000000
+ 				MX6QDL_PAD_EIM_D23__GPIO3_IO23 0x80000000
+ 				MX6QDL_PAD_EIM_EB3__GPIO2_IO31 0x80000000
+-				MX6QDL_PAD_SD1_CMD__GPIO1_IO18 0x80000000
+ 				MX6QDL_PAD_EIM_D16__GPIO3_IO16 0x80000000
+ 				MX6QDL_PAD_SD3_RST__GPIO7_IO08	0x80000000
+ 				MX6QDL_PAD_GPIO_9__GPIO1_IO09 	0x80000000
+@@ -411,6 +428,20 @@
+ 				MX6QDL_PAD_GPIO_1__WDOG2_B 0x80000000
+ 				MX6QDL_PAD_NANDF_CS0__GPIO6_IO11 0x80000000
+ 				MX6QDL_PAD_NANDF_CS1__GPIO6_IO14 0x80000000
++
++				MX6QDL_PAD_GPIO_7__GPIO1_IO07 0x80000000
++				MX6QDL_PAD_NANDF_D7__GPIO2_IO07 0x80000000
++				MX6QDL_PAD_SD1_CLK__GPIO1_IO20 0x80000000
++				MX6QDL_PAD_SD1_DAT0__GPIO1_IO16 0x80000000
++				MX6QDL_PAD_SD2_CLK__GPIO1_IO10 0x80000000
++				MX6QDL_PAD_SD2_DAT0__GPIO1_IO15 0x80000000
++				MX6QDL_PAD_SD2_DAT2__GPIO1_IO13 0x80000000
++				MX6QDL_PAD_SD2_DAT3__GPIO1_IO12 0x80000000
++				MX6QDL_PAD_DISP0_DAT12__GPIO5_IO06 0x80000000
++				MX6QDL_PAD_DISP0_DAT13__GPIO5_IO07 0x80000000
++				MX6QDL_PAD_DISP0_DAT14__GPIO5_IO08 0x80000000
++				MX6QDL_PAD_EIM_D30__GPIO3_IO30 0x80000000
++				MX6QDL_PAD_EIM_D31__GPIO3_IO31 0x80000000
+ 			>;
+ 		};
+ 
+@@ -500,6 +531,13 @@
+ 			>;
+ 		};
+ 
++		pinctrl_i2c4: i2c4grp {
++			fsl,pins = <
++				MX6QDL_PAD_NANDF_CS3__I2C4_SDA		0x4001b8b1
++				MX6QDL_PAD_NANDF_WP_B__I2C4_SCL		0x4001b8b1
++			>;
++		};
++
+ 		pinctrl_ipu1: ipu1grp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_DI0_DISP_CLK__IPU1_DI0_DISP_CLK 0x10
+@@ -552,17 +590,33 @@
+ 		};
+ 
+ 		pinctrl_pwm1: pwm1grp {
++			// Chamber LED PWM A
+ 			fsl,pins = <
+ 				MX6QDL_PAD_DISP0_DAT8__PWM1_OUT		0x1b0b1
+ 			>;
+ 		};
+ 
+ 		pinctrl_pwm2: pwm2grp {
++			// Display backlight
+ 			fsl,pins = <
+ 				MX6QDL_PAD_DISP0_DAT9__PWM2_OUT		0x1b0b1
+ 			>;
+ 		};
+ 
++		pinctrl_pwm3: pwm3grp {
++			// Chamber LED PWM B
++			fsl,pins = <
++				MX6QDL_PAD_SD1_DAT1__PWM3_OUT		0x1b0b1
++			>;
++		};
++
++		pinctrl_pwm4: pwm4grp {
++			// Chamber LED PWM C
++			fsl,pins = <
++				MX6QDL_PAD_SD1_CMD__PWM4_OUT		0x1b0b1
++			>;
++		};
++
+ 		pinctrl_uart1: uart1grp {
+ 			fsl,pins = <
+ 				MX6QDL_PAD_CSI0_DAT10__UART1_TX_DATA	0x1b0b1
+@@ -764,6 +818,18 @@
+ 	status = "okay";
+ };
+ 
++&pwm3 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_pwm3>;
++	status = "okay";
++};
++
++&pwm4 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_pwm4>;
++	status = "okay";
++};
++
+ &ssi2 {
+ 	fsl,mode = "i2s-slave";
+ 	status = "okay";
+@@ -797,7 +863,7 @@
+ 	no-1-8-v;
+ 	keep-power-in-suspend;
+ 	enable-sdio-wakeup;
+-	status = "okay";
++	status = "disabled";
+ };
+ 
+ &usdhc3 {
