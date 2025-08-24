@@ -1,5 +1,13 @@
-Topic Template Title 
-###################################
+Device Tree 
+###############
+
+.. toctree::
+   :caption: General
+   :glob:
+   :numbered:
+   :maxdepth: 1
+   
+   DT-*
 
 .. only:: personal
 
